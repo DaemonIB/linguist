@@ -28,20 +28,30 @@ jobs:
           sudo chown -R $(id -u):$(id -g) ./build
 
       - name: Build CRX file for chromium
+        continue-on-error: true
         working-directory: "./build"
         env:
           CHROMIUM_CRX_PEM: ${{ secrets.CHROMIUM_CRX_PEM }}
         run: |
+          if [ -z "$CHROMIUM_CRX_PEM" ]; then
+            echo "Skipping CRX build - CHROMIUM_CRX_PEM secret not set"
+            exit 0
+          fi
           echo "$CHROMIUM_CRX_PEM" > ./crx.pem
           npx crx pack chromium -o linguist.crx -p ./crx.pem
           ls -al ./
 
       - name: Build XPI file for firefox-standalone
+        continue-on-error: true
         working-directory: "./build"
         env:
           AMO_KEY: ${{ secrets.AMO_KEY }}
           AMO_SECRET: ${{ secrets.AMO_SECRET }}
         run: |
+          if [ -z "$AMO_KEY" ] || [ -z "$AMO_SECRET" ]; then
+            echo "Skipping XPI signing - AMO secrets not set"
+            exit 0
+          fi
           mkdir ./AMO
           npx web-ext sign --channel unlisted --api-key "$AMO_KEY" --api-secret "$AMO_SECRET" --source-dir ./firefox-standalone --artifacts-dir ./AMO
           mv AMO/*.xpi AMO/linguist.xpi
@@ -65,6 +75,7 @@ jobs:
           name: v${{ env.PROJECT_VERSION }}
           # Use current commit hash, instead of main branch
           target_commitish: ${{ github.sha }}
+          fail_on_unmatched_files: false
           files: |
             build/AMO/linguist.xpi
             build/linguist.crx
