@@ -3,7 +3,10 @@ import { combine, createEffect, createEvent, createStore, sample, Store } from '
 import { onHotkeysPressed } from '../../components/controls/Hotkey/utils';
 import { getPageLanguage } from '../../lib/browser';
 import { isNotEqual } from '../../lib/effector/filters';
-import { isRequireTranslateBySitePreferences } from '../../pages/popup/tabs/PageTranslator/PageTranslator.utils/utils';
+import {
+	getForcedSourceLanguage,
+	isRequireTranslateBySitePreferences,
+} from '../../pages/popup/tabs/PageTranslator/PageTranslator.utils/utils';
 import { getLanguagePreferences } from '../../requests/backend/autoTranslation/languagePreferences/getLanguagePreferences';
 // Requests
 import { getSitePreferences } from '../../requests/backend/autoTranslation/sitePreferences/getSitePreferences';
@@ -248,8 +251,32 @@ export class PageTranslationContext {
 		// TODO: make it option
 		const isAllowTranslateSameLanguages = true;
 
-		const pageLanguage = pageData.language;
 		const userLanguage = config.language;
+
+		// Consider site preferences first
+		const pageHost = location.host;
+		const sitePreferences = await getSitePreferences(pageHost);
+
+		// Check if there's a forced source language (for mixed-language pages)
+		const forcedSourceLanguage = getForcedSourceLanguage(sitePreferences);
+		if (forcedSourceLanguage !== null) {
+			// Use forced language regardless of page language detection
+			const { supportedLanguages } = await getTranslatorFeatures();
+			const isLanguagesSupportedByTranslator = [
+				forcedSourceLanguage,
+				userLanguage,
+			].every((language) => supportedLanguages.includes(language));
+
+			if (isLanguagesSupportedByTranslator) {
+				this.events.updatePageTranslationState({
+					from: forcedSourceLanguage,
+					to: userLanguage,
+				});
+			}
+			return;
+		}
+
+		const pageLanguage = pageData.language;
 
 		// Skip by language directions
 		if (pageLanguage === null) return;
@@ -257,9 +284,6 @@ export class PageTranslationContext {
 
 		let isNeedAutoTranslate = false;
 
-		// Consider site preferences
-		const pageHost = location.host;
-		const sitePreferences = await getSitePreferences(pageHost);
 		const isSiteRequireTranslate = isRequireTranslateBySitePreferences(
 			pageLanguage,
 			sitePreferences,

@@ -17,10 +17,10 @@ export const getTranslatePreferencesForSite = (
 		sitePreferenceOptions.DEFAULT;
 
 	if (sitePreferences !== null) {
-		// Set default for site
-		translatePreference = sitePreferenceOptions.DEFAULT_FOR_THIS_LANGUAGE;
-
-		if (!sitePreferences.enableAutoTranslate) {
+		// Check for forced source language first
+		if (sitePreferences.forceSourceLanguage) {
+			translatePreference = sitePreferenceOptions.ALWAYS_FORCE_LANGUAGE;
+		} else if (!sitePreferences.enableAutoTranslate) {
 			translatePreference = sitePreferenceOptions.NEVER;
 		} else if (
 			sitePreferences.autoTranslateIgnoreLanguages.length === 0 &&
@@ -28,6 +28,9 @@ export const getTranslatePreferencesForSite = (
 		) {
 			translatePreference = sitePreferenceOptions.ALWAYS;
 		} else {
+			// Set default for site
+			translatePreference = sitePreferenceOptions.DEFAULT_FOR_THIS_LANGUAGE;
+
 			const isAutoTranslatedLang =
 				sitePreferences.autoTranslateLanguages.includes(lang);
 			const isIgnoredLang =
@@ -61,10 +64,19 @@ export const isRequireTranslateBySitePreferences = (
 			return false;
 		case sitePreferenceOptions.ALWAYS:
 		case sitePreferenceOptions.ALWAYS_FOR_THIS_LANGUAGE:
+		case sitePreferenceOptions.ALWAYS_FORCE_LANGUAGE:
 			return true;
 		default:
 			return null;
 	}
+};
+
+/**
+ * Get the forced source language from site preferences, if set
+ */
+export const getForcedSourceLanguage = (sitePreferences: SitePrefs): string | null => {
+	if (sitePreferences === null) return null;
+	return sitePreferences.forceSourceLanguage ?? null;
 };
 
 /**

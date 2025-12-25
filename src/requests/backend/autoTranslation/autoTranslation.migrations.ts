@@ -29,6 +29,7 @@ export const AutoTranslationMigration = createMigrationTask([
 							enableAutoTranslate: false,
 							autoTranslateLanguages: [],
 							autoTranslateIgnoreLanguages: [],
+							forceSourceLanguage: null,
 						};
 
 						const enableAutoTranslate = Boolean(entry.translateAlways);

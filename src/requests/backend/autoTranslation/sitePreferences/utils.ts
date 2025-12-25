@@ -24,6 +24,12 @@ export const dataSignature = type.type({
 	 * This list have priority over `autoTranslateLanguages`
 	 */
 	autoTranslateIgnoreLanguages: type.array(type.string),
+
+	/**
+	 * When set, always translate using this language as source, ignoring page language detection.
+	 * This is useful for mixed-language pages where auto-detection might pick the wrong language.
+	 */
+	forceSourceLanguage: type.union([type.string, type.null, type.undefined]),
 });
 
 export type SiteData = TypeOf<typeof dataSignature>;

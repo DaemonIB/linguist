@@ -195,6 +195,9 @@
 	"pageTranslator_sitePreferences_autoTranslate_always": {
 		"message": "Always translate"
 	},
+	"pageTranslator_sitePreferences_autoTranslate_alwaysForceLanguage": {
+		"message": "Always translate (use selected language)"
+	},
 	"pageTranslator_sitePreferences_autoTranslate_alwaysForThisLang": {
 		"message": "Always translate for this language"
 	},

@@ -11,6 +11,7 @@ import { getLanguagePreferences } from '../../../../requests/backend/autoTransla
 import { deleteSitePreferences } from '../../../../requests/backend/autoTranslation/sitePreferences/deleteSitePreferences';
 import { getSitePreferences } from '../../../../requests/backend/autoTranslation/sitePreferences/getSitePreferences';
 import { setSitePreferences } from '../../../../requests/backend/autoTranslation/sitePreferences/setSitePreferences';
+import { SiteData } from '../../../../requests/backend/autoTranslation/sitePreferences/utils';
 import { getPageLanguage } from '../../../../requests/contentscript/getPageLanguage';
 import { disableTranslatePage } from '../../../../requests/contentscript/pageTranslation/disableTranslatePage';
 import { enableTranslatePage } from '../../../../requests/contentscript/pageTranslation/enableTranslatePage';
@@ -91,11 +92,14 @@ export const PageTranslatorTab: TabComponent<InitFn<InitData>> = ({
 	const setSitePreferencesProxy: any = useCallback(
 		(state: string) => {
 			// Remember
-			const newState: SitePrefs = initData.sitePreferences || {
-				enableAutoTranslate: true,
-				autoTranslateLanguages: [],
-				autoTranslateIgnoreLanguages: [],
-			};
+			const newState: SiteData = initData.sitePreferences
+				? { ...initData.sitePreferences }
+				: {
+						enableAutoTranslate: true,
+						autoTranslateLanguages: [],
+						autoTranslateIgnoreLanguages: [],
+						forceSourceLanguage: null,
+					};
 
 			switch (state) {
 				case sitePreferenceOptions.DEFAULT:
@@ -113,6 +117,8 @@ export const PageTranslatorTab: TabComponent<InitFn<InitData>> = ({
 							(lang) => lang !== from,
 						);
 
+					newState.forceSourceLanguage = null;
+
 					if (
 						newState.autoTranslateLanguages.length === 0 &&
 						newState.autoTranslateIgnoreLanguages.length === 0
@@ -129,10 +135,22 @@ export const PageTranslatorTab: TabComponent<InitFn<InitData>> = ({
 					newState.enableAutoTranslate = true;
 					newState.autoTranslateLanguages = [];
 					newState.autoTranslateIgnoreLanguages = [];
+					newState.forceSourceLanguage = null;
+					break;
+				case sitePreferenceOptions.ALWAYS_FORCE_LANGUAGE:
+					// Skip invalid language
+					if (from === undefined) break;
+
+					// Enable auto translate and force the selected source language
+					newState.enableAutoTranslate = true;
+					newState.autoTranslateLanguages = [];
+					newState.autoTranslateIgnoreLanguages = [];
+					newState.forceSourceLanguage = from;
 					break;
 				case sitePreferenceOptions.NEVER:
 					newState.enableAutoTranslate = false;
 					newState.autoTranslateLanguages = [];
+					newState.forceSourceLanguage = null;
 					break;
 				case sitePreferenceOptions.ALWAYS_FOR_THIS_LANGUAGE:
 					// Skip invalid language
@@ -140,6 +158,7 @@ export const PageTranslatorTab: TabComponent<InitFn<InitData>> = ({
 
 					// Enable auto translate
 					newState.enableAutoTranslate = true;
+					newState.forceSourceLanguage = null;
 
 					// Remove language if exist
 					newState.autoTranslateIgnoreLanguages =
@@ -156,6 +175,8 @@ export const PageTranslatorTab: TabComponent<InitFn<InitData>> = ({
 				case sitePreferenceOptions.NEVER_FOR_THIS_LANGUAGE:
 					// Skip invalid language
 					if (from === undefined) break;
+
+					newState.forceSourceLanguage = null;
 
 					// Remove language if exist
 					newState.autoTranslateLanguages =

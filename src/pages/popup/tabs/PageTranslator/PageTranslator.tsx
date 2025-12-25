@@ -23,6 +23,7 @@ export const languagePreferenceOptions = {
 export const sitePreferenceOptions = {
 	DEFAULT: 'default',
 	ALWAYS: 'always',
+	ALWAYS_FORCE_LANGUAGE: 'alwaysForceLanguage',
 	NEVER: 'never',
 	DEFAULT_FOR_THIS_LANGUAGE: 'defaultForThisLang',
 	ALWAYS_FOR_THIS_LANGUAGE: 'alwaysForThisLang',
@@ -132,6 +133,7 @@ export const PageTranslator: FC<PageTranslatorProps> = ({
 				sitePreferenceOptions.DEFAULT,
 				sitePreferenceOptions.NEVER,
 				sitePreferenceOptions.ALWAYS,
+				sitePreferenceOptions.ALWAYS_FORCE_LANGUAGE,
 				sitePreferenceOptions.DEFAULT_FOR_THIS_LANGUAGE,
 				sitePreferenceOptions.ALWAYS_FOR_THIS_LANGUAGE,
 				sitePreferenceOptions.NEVER_FOR_THIS_LANGUAGE,
